@@ -1,34 +1,43 @@
 // proxy.js
 
-const fetch = require('node-fetch');
+// Import required modules
+import fetch from "node-fetch";
 
-exports.handler = async function(event, context) {
+// Main function for the Netlify serverless function
+export async function handler(event, context) {
+  // Parse the query parameters from the request
+  const { date, nump } = event.queryStringParameters;
+
   try {
-    const { queryStringParameters } = event;
-    const apiUrl = 'https://aa.usno.navy.mil/api/moon/phases/date';
-    
-    if (!queryStringParameters.date) {
-      return {
-        statusCode: 400,
-        body: JSON.stringify({ error: 'Date parameter is required' }),
-      };
-    }
+    // Make the API call to fetch moon phases
+    const moonPhases = await fetchMoonPhases(date, nump);
 
-    const queryParams = new URLSearchParams(queryStringParameters);
-    const url = `${apiUrl}?${queryParams.toString()}`;
-    
-    const response = await fetch(url);
-    const data = await response.json();
-    console.log(data)
-
+    // Return the response
     return {
-      statusCode: response.status,
-      body: JSON.stringify(data),
+      statusCode: 200,
+      body: JSON.stringify(moonPhases),
+      headers: {
+        "Content-Type": "application/json",
+      },
     };
   } catch (error) {
+    console.error("Error fetching moon phases:", error);
+
+    // Return an error response
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: 'Internal server error' }),
+      body: JSON.stringify({ error: "Internal Server Error" }),
+      headers: {
+        "Content-Type": "application/json",
+      },
     };
   }
-};
+}
+
+// Function to fetch moon phases
+async function fetchMoonPhases(date, nump) {
+  const apiUrl = `https://aa.usno.navy.mil/api/moon/phases/date?date=${date}&nump=${nump}`;
+  const response = await fetch(apiUrl);
+  const data = await response.json();
+  return data;
+}

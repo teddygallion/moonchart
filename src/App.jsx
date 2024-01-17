@@ -1,8 +1,15 @@
 import React, { useState, useEffect } from 'react';
+import './App.css'
 
 const App = () => {
   const [calendarData, setCalendarData] = useState([]);
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth() + 1);
+  const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
+  const monthsOfYear = [
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December'
+  ];
+  
   const [moonPhases, setMoonPhases] = useState({});
 
   useEffect(() => {
@@ -12,7 +19,7 @@ const App = () => {
 
   const fetchMoonPhases = async () => {
     try {
-      const response = await fetch('/.netlify/functions/proxy');  // Adjust the path based on your Netlify Function endpoint
+      const response = await fetch('./netlify/functions/proxy');  // Adjust the path based on your Netlify Function endpoint
       const data = await response.json();
       console.log(data);
       const phasesMapping = {};
@@ -72,45 +79,62 @@ const App = () => {
 
     // Render the calendar
     const calendarTable = (
-      <table>
-        <thead>
-          <tr>
-            {daysOfWeek.map((day) => (
-              <th key={day}>{day}</th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {calendarRows.map((week, rowIndex) => (
-            <tr key={rowIndex}>
-              {week.map((day, index) => (
-                <td key={index}>{day}</td>
+      <div>
+        <h2>{monthsOfYear[currentMonth -1]} {currentYear}</h2>
+        <table>
+          <thead>
+            <tr>
+              {daysOfWeek.map((day) => (
+                <th key={day}>{day}</th>
               ))}
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {calendarRows.map((week, rowIndex) => (
+              <tr key={rowIndex}>
+                {week.map((day, index) => (
+                  <td key={index}>{day}</td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     );
 
     setCalendarData(calendarTable);
   };
 
   const goToPreviousMonth = () => {
-    setCurrentMonth((prevMonth) => (prevMonth === 1 ? 12 : prevMonth - 1));
+    setCurrentMonth((prevMonth) => {
+      if (prevMonth === 1) {
+        setCurrentYear((prevYear) => currentYear - 1);
+        return 12;
+      } else {
+        return prevMonth - 1;
+      }
+    });
   };
 
   const goToNextMonth = () => {
-    setCurrentMonth((prevMonth) => (prevMonth === 12 ? 1 : prevMonth + 1));
+    setCurrentMonth((prevMonth) => {
+      if (prevMonth === 12) {
+        setCurrentYear((prevYear) => currentYear +1);
+        return 1;
+      } else {
+        return prevMonth + 1;
+      }
+    });
   };
 
   return (
     <div>
       <h1>Calendar</h1>
       <div>
-        <button onClick={goToPreviousMonth}>Previous Month</button>
-        <button onClick={goToNextMonth}>Next Month</button>
+      <button onClick={goToPreviousMonth}> {'\<'} </button>
+        <button onClick={goToNextMonth}> {'\>'} </button>
+        {calendarData}
       </div>
-      {calendarData}
     </div>
   );
 };
